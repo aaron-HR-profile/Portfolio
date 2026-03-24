@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aaron Benedict · HR Analytics & Operations</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=Newsreader:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0e0e0e;
+  --paper: #f5f0e8;
+  --cream: #ede8db;
+  --rust: #c4431a;
+  --gold: #b8902a;
+  --muted: #8a7f6e;
+  --rule: #d4cfc3;
+  --green: #2a7a4b;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Newsreader', Georgia, serif;
+  font-weight: 300;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.5;
+}
+
+/* PROGRESS BAR */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: var(--rust); width: 0%; z-index: 9998;
+  transition: width 0.08s linear;
+}
+
+/* STICKY NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--ink);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px;
+  border-bottom: 2px solid var(--gold);
+}
+.nav-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px; font-weight: 700;
+  color: var(--paper); letter-spacing: 0.02em;
+  padding: 14px 0;
+}
+.nav-tabs { display: flex; }
+.nav-tab {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(245,240,232,0.5);
+  padding: 18px 18px; cursor: pointer;
+  border: none; background: none;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  position: relative; top: 2px;
+}
+.nav-tab:hover { color: var(--paper); }
+.nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+.nav-cta {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--ink); background: var(--gold);
+  padding: 8px 16px; text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-cta:hover { background: var(--rust); color: var(--paper); }
+
+/* MASTHEAD */
+.masthead { border-bottom: 3px double var(--ink); overflow: hidden; }
+.masthead-top {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 48px; border-bottom: 1px solid var(--ink);
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted);
+}
+.masthead-main {
+  padding: 48px 48px 32px;
+  display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: end;
+}
+.name-block h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(56px, 9vw, 108px);
+  font-weight: 900; line-height: 0.9; letter-spacing: -0.02em;
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.name-block h1.vis { opacity: 1; transform: translateY(0); }
+.name-block h1 .first { display: block; }
+.name-block h1 .last { display: block; color: transparent; -webkit-text-stroke: 2px var(--ink); }
+.tagline {
+  font-family: 'Newsreader', serif; font-style: italic;
+  font-size: 18px; color: var(--rust); margin-top: 16px;
+  opacity: 0; transition: opacity 0.6s 0.4s ease;
+}
+.tagline.vis { opacity: 1; }
+.contact-card {
+  font-family: 'DM Mono', monospace; font-size: 11px; line-height: 2;
+  text-align: right; color: var(--muted);
+  border-left: 1px solid var(--rule); padding-left: 32px;
+  opacity: 0; transition: opacity 0.6s 0.5s ease;
+}
+.contact-card.vis { opacity: 1; }
+.contact-card a { color: var(--rust); text-decoration: none; }
+.contact-card a:hover { text-decoration: underline; }
+.masthead-rule {
+  display: flex; align-items: center; flex-wrap: wrap;
+  padding: 12px 48px; gap: 16px; border-top: 1px solid var(--rule);
+}
+.masthead-rule span {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap;
+}
+.masthead-rule hr { flex: 1; border: none; border-top: 1px solid var(--rule); }
+
+/* BADGE ROW */
+.badge-row {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 14px 48px; border-top: 1px solid var(--rule);
+  background: var(--cream); border-bottom: 1px solid var(--rule);
+}
+.badge {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 5px 12px; border: 1px solid;
+  display: inline-flex; align-items: center; gap: 6px;
+  cursor: default; transition: background 0.15s, color 0.15s;
+}
+.badge-loc { border-color: var(--muted); color: var(--muted); }
+.badge-loc:hover { background: var(--muted); color: var(--paper); }
+.badge-mode { border-color: var(--green); color: var(--green); background: rgba(42,122,75,0.07); }
+.badge-mode:hover { background: var(--green); color: var(--paper); }
+.badge-avail { border-color: var(--rust); color: var(--rust); background: rgba(196,67,26,0.07); }
+
+/* STAT BAND */
+.stat-band {
+  background: var(--ink); color: var(--paper);
+  display: grid; grid-template-columns: repeat(4, 1fr);
+}
+.stat-item {
+  padding: 28px 32px; border-right: 1px solid rgba(255,255,255,0.1);
+  text-align: center; cursor: default;
+  transition: background 0.2s; position: relative;
+}
+.stat-item:hover { background: rgba(184,144,42,0.12); }
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-family: 'Playfair Display', serif; font-size: 48px;
+  font-weight: 700; color: var(--gold); line-height: 1; display: block;
+  transition: transform 0.2s;
+}
+.stat-item:hover .stat-num { transform: scale(1.08); }
+.stat-label {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: rgba(245,240,232,0.6); display: block; margin-top: 6px;
+}
+.stat-tip {
+  display: none; position: absolute; bottom: 110%; left: 50%;
+  transform: translateX(-50%);
+  background: var(--paper); color: var(--ink);
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  padding: 6px 12px; white-space: nowrap; border: 1px solid var(--rule);
+  z-index: 200; pointer-events: none;
+}
+.stat-item:hover .stat-tip { display: block; }
+
+/* TAB STRIP */
+.tabs-panel {
+  border-bottom: 2px solid var(--rule); background: var(--paper);
+  position: sticky; top: 53px; z-index: 90;
+  display: flex; padding: 0 48px; overflow-x: auto;
+}
+.tab-btn {
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 16px 22px; border: none; background: none;
+  color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  position: relative; bottom: -2px; white-space: nowrap;
+  transition: color 0.2s;
+}
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.active { color: var(--rust); border-bottom-color: var(--rust); }
+
+/* TAB CONTENT */
+.tab-content { display: none; animation: fadeIn 0.3s ease; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* LAYOUT */
+.content { display: grid; grid-template-columns: 1fr 340px; }
+.main-col { border-right: 1px solid var(--rule); padding: 48px; }
+.side-col { padding: 48px 36px; background: var(--cream); }
+
+/* SECTION */
+.section { margin-bottom: 52px; }
+.section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+.section-label {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--rust); white-space: nowrap;
+}
+.section-header hr { flex: 1; border: none; border-top: 1px solid var(--rule); }
+
+.profile-text {
+  font-size: 17px; line-height: 1.75; color: #2a2620;
+  padding-left: 24px; border-left: 3px solid var(--rust);
+}
+
+/* EXPERIENCE */
+.timeline-line { position: relative; padding-left: 32px; }
+.timeline-line::before {
+  content: ''; position: absolute; left: 6px;
+  top: 10px; bottom: 10px; width: 1px;
+  background: linear-gradient(to bottom, var(--rust), var(--gold), var(--rule));
+}
+.timeline-dot {
+  position: absolute; left: 0; top: 14px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--paper); border: 2px solid var(--rust);
+  z-index: 1; transition: background 0.2s;
+}
+.exp-item:hover .timeline-dot { background: var(--rust); }
+.exp-item {
+  margin-bottom: 36px; padding-bottom: 36px;
+  border-bottom: 1px dashed var(--rule);
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.exp-item.vis { opacity: 1; transform: translateY(0); }
+.exp-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.exp-header { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; margin-bottom: 8px; }
+.exp-role { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; line-height: 1.2; }
+.exp-company { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--rust); letter-spacing: 0.08em; margin-top: 4px; }
+.exp-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-align: right; white-space: nowrap; padding-top: 4px; }
+.exp-bullets { list-style: none; margin-top: 14px; }
+.exp-bullets li {
+  font-size: 14.5px; line-height: 1.65; color: #3a3530;
+  padding: 5px 0 5px 20px; position: relative;
+}
+.exp-bullets li::before { content: '▸'; position: absolute; left: 0; color: var(--gold); font-size: 12px; }
+.exp-bullets.collapsed li:nth-child(n+3) { display: none; }
+.exp-toggle {
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--rust); background: none;
+  border: 1px solid var(--rust); padding: 5px 12px;
+  cursor: pointer; margin-top: 12px;
+  transition: background 0.2s, color 0.2s;
+}
+.exp-toggle:hover { background: var(--rust); color: var(--paper); }
+
+/* PROJECT */
+.project-card {
+  background: var(--ink); color: var(--paper);
+  padding: 32px; position: relative; overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.project-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(14,14,14,0.25); }
+.project-card::before {
+  content: 'PROJECT'; position: absolute; top: 20px; right: 24px;
+  font-family: 'DM Mono', monospace; font-size: 9px;
+  letter-spacing: 0.25em; color: var(--gold);
+}
+.project-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin-bottom: 6px; line-height: 1.2; }
+.project-tech { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--gold); letter-spacing: 0.15em; margin-bottom: 20px; }
+.project-bullets { list-style: none; }
+.project-bullets li { font-size: 14px; line-height: 1.65; color: rgba(245,240,232,0.8); padding: 4px 0 4px 20px; position: relative; }
+.project-bullets li::before { content: '▸'; position: absolute; left: 0; color: var(--rust); font-size: 12px; }
+.project-finding { margin-top: 20px; padding: 16px; border: 1px solid rgba(184,144,42,0.4); background: rgba(184,144,42,0.08); }
+.project-finding-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.project-finding p { font-size: 13.5px; color: rgba(245,240,232,0.9); line-height: 1.6; }
+
+/* SKILLS TAB */
+.skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 48px; }
+.skill-group-card { background: var(--cream); padding: 28px; border-top: 3px solid var(--rust); transition: box-shadow 0.2s; }
+.skill-group-card:hover { box-shadow: 0 4px 20px rgba(14,14,14,0.08); }
+.skill-group-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--rust); margin-bottom: 16px; }
+.skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.skill-tag {
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  padding: 5px 12px; background: var(--paper);
+  border: 1px solid var(--rule); color: var(--ink);
+  letter-spacing: 0.05em; cursor: default;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.skill-tag:hover, .skill-tag.hl { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.skill-bar-row { margin-bottom: 12px; }
+.skill-bar-label { display: flex; justify-content: space-between; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: var(--ink); margin-bottom: 5px; }
+.skill-bar-track { height: 4px; background: var(--rule); overflow: hidden; }
+.skill-bar-fill { height: 100%; background: var(--rust); width: 0; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); }
+.skill-bar-fill.animated { width: var(--pct); }
+
+/* SIDEBAR */
+.side-section { margin-bottom: 40px; }
+.side-section-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--rust); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+.side-tag {
+  font-family: 'DM Mono', monospace; font-size: 10px;
+  padding: 4px 10px; background: var(--paper);
+  border: 1px solid var(--rule); color: var(--ink);
+  display: inline-block; margin: 3px;
+  transition: background 0.15s, color 0.15s;
+}
+.side-tag:hover, .side-tag.hl { background: var(--ink); color: var(--paper); }
+.edu-item { margin-bottom: 20px; }
+.edu-degree { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; line-height: 1.3; }
+.edu-school { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 3px; }
+.edu-year { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--rust); margin-top: 3px; }
+.cert-list { list-style: none; }
+.cert-list li { font-size: 13px; line-height: 1.5; padding: 8px 0 8px 16px; border-bottom: 1px dashed var(--rule); position: relative; color: #3a3530; }
+.cert-list li::before { content: '◆'; position: absolute; left: 0; font-size: 7px; top: 12px; color: var(--gold); }
+.availability { background: var(--rust); color: var(--paper); padding: 20px; }
+.availability-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245,240,232,0.7); margin-bottom: 8px; }
+.availability-text { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; line-height: 1.7; }
+
+/* CONTACT TAB */
+.contact-section { max-width: 680px; margin: 0 auto; padding: 64px 48px; }
+.contact-section h2 { font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 900; line-height: 1.1; margin-bottom: 8px; }
+.contact-section .sub { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 40px; text-transform: uppercase; }
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; }
+.contact-item { background: var(--cream); padding: 20px; border-top: 2px solid var(--rule); transition: border-color 0.2s; }
+.contact-item:hover { border-top-color: var(--rust); }
+.contact-item-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.contact-item-value { font-family: 'Newsreader', serif; font-size: 16px; color: var(--ink); }
+.contact-item-value a { color: var(--rust); text-decoration: none; }
+.contact-item-value a:hover { text-decoration: underline; }
+.loc-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.loc-chip {
+  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em;
+  padding: 7px 16px; border: 1px solid var(--ink); background: transparent;
+  color: var(--ink); cursor: default;
+  transition: background 0.2s, color 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.loc-chip:hover { background: var(--ink); color: var(--paper); }
+.loc-chip.mode { border-color: var(--green); color: var(--green); }
+.loc-chip.mode:hover { background: var(--green); color: var(--paper); }
+
+/* FOOTER */
+footer {
+  border-top: 3px double var(--ink); padding: 20px 48px;
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--ink); flex-wrap: wrap; gap: 8px;
+}
+footer span { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; color: rgba(245,240,232,0.4); text-transform: uppercase; }
+
+/* BACK TO TOP */
+#back-top {
+  position: fixed; bottom: 32px; right: 32px;
+  background: var(--ink); color: var(--paper);
+  font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em;
+  padding: 10px 14px; border: none; cursor: pointer;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s; z-index: 500;
+}
+#back-top.vis { opacity: 1; pointer-events: all; }
+#back-top:hover { background: var(--rust); }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .masthead-main { grid-template-columns: 1fr; }
+  .contact-card { text-align: left; border-left: none; border-top: 1px solid var(--rule); padding-left: 0; padding-top: 16px; }
+  .content { grid-template-columns: 1fr; }
+  .main-col { border-right: none; padding: 32px 24px; }
+  .side-col { padding: 32px 24px; }
+  .stat-band { grid-template-columns: repeat(2, 1fr); }
+  .masthead-top, .masthead-main, .masthead-rule, .badge-row { padding-left: 24px; padding-right: 24px; }
+  .nav { padding: 0 16px; }
+  .nav-tab { padding: 18px 10px; font-size: 9px; }
+  .tabs-panel { padding: 0 16px; }
+  .skills-grid { grid-template-columns: 1fr; padding: 32px 24px; }
+  .contact-grid { grid-template-columns: 1fr; }
+  .contact-section { padding: 40px 24px; }
+  footer { padding: 16px 24px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- STICKY NAV -->
+<nav class="nav">
+  <span class="nav-name">Aaron Benedict</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="goTab('overview',this)">Overview</button>
+    <button class="nav-tab" onclick="goTab('experience',this)">Experience</button>
+    <button class="nav-tab" onclick="goTab('skills',this)">Skills</button>
+    <button class="nav-tab" onclick="goTab('contact',this)">Contact</button>
+  </div>
+  <a class="nav-cta" href="mailto:aaronbeneedict@gmail.com">Hire Me</a>
+</nav>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-top">
+    <span>Portfolio · HR Operations & Analytics</span>
+    <span>aaronbeneedict@gmail.com</span>
+    <span>Chennai, India · 2025</span>
+  </div>
+  <div class="masthead-main">
+    <div class="name-block">
+      <h1 id="hero-name">
+        <span class="first">Aaron</span>
+        <span class="last">Benedict</span>
+      </h1>
+      <p class="tagline" id="hero-tag">HR Operations · Payroll & Compliance · People Analytics</p>
+    </div>
+    <div class="contact-card" id="hero-contact">
+      <a href="mailto:aaronbeneedict@gmail.com">aaronbeneedict@gmail.com</a><br>
+      +91 93609 25075<br>
+      Chennai, India<br>
+      <a href="https://linkedin.com/in/aaron-benedict" target="_blank">linkedin.com/in/aaron-benedict</a><br><br>
+      Available · Immediate Joining
+    </div>
+  </div>
+  <div class="masthead-rule">
+    <span>MBA Candidate · Jain University · Expected April 2026</span>
+    <hr>
+    <span>Multiple Locations · On-site / Remote / Hybrid</span>
+  </div>
+</header>
+
+<!-- BADGE ROW -->
+<div class="badge-row">
+  <span class="badge badge-loc">📍 Chennai</span>
+  <span class="badge badge-loc">📍 Bengaluru</span>
+  <span class="badge badge-loc">📍 Hyderabad</span>
+  <span class="badge badge-loc">📍 Mumbai</span>
+  <span class="badge badge-mode">🏠 Remote</span>
+  <span class="badge badge-mode">🔀 Hybrid</span>
+  <span class="badge badge-avail">✅ Immediate Joining</span>
+</div>
+
+<!-- STAT BAND -->
+<div class="stat-band">
+  <div class="stat-item">
+    <span class="stat-num">30%</span>
+    <span class="stat-label">↓ Hiring TAT Reduced</span>
+    <div class="stat-tip">Achieved at GAO Tech via process discipline</div>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">40%</span>
+    <span class="stat-label">↑ Screening Efficiency</span>
+    <div class="stat-tip">Structured evaluation frameworks at Skillgenic</div>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">₹0</span>
+    <span class="stat-label">Statutory Penalties</span>
+    <div class="stat-tip">100% PF / ESI / TDS compliance at MrMed</div>
+  </div>
+  <div class="stat-item">
+    <span class="stat-num">250+</span>
+    <span class="stat-label">Candidates Managed</span>
+    <div class="stat-tip">Sourced across LinkedIn, Naukri & Indeed</div>
+  </div>
+</div>
+
+<!-- TAB STRIP -->
+<div class="tabs-panel">
+  <button class="tab-btn active" onclick="goTab('overview',this)">Overview</button>
+  <button class="tab-btn" onclick="goTab('experience',this)">Experience</button>
+  <button class="tab-btn" onclick="goTab('skills',this)">Skills</button>
+  <button class="tab-btn" onclick="goTab('contact',this)">Contact</button>
+</div>
+
+<!-- ═══ OVERVIEW ═══ -->
+<div id="tab-overview" class="tab-content active">
+  <div class="content">
+    <main class="main-col">
+      <section class="section">
+        <div class="section-header"><span class="section-label">Professional Profile</span><hr></div>
+        <p class="profile-text">
+          Results-driven HR professional and MBA candidate with 1+ year of experience in HR operations, payroll processing, statutory compliance (PF, ESI, TDS), and people analytics. Strong command of greytHR HRMS and Excel-based reporting, with a track record of measurable impact across hiring efficiency, data accuracy, and workforce insight. Adept at managing employee lifecycle data and driving process improvements — available for immediate joining across Chennai, Bengaluru, Hyderabad, Mumbai, or remote/hybrid setups.
+        </p>
+      </section>
+      <section class="section">
+        <div class="section-header"><span class="section-label">Analytics Project</span><hr></div>
+        <div class="project-card">
+          <div class="project-title">Employee Attrition Risk Dashboard</div>
+          <div class="project-tech">Excel · Power BI · DAX · IBM HR Analytics Dataset · 2024</div>
+          <ul class="project-bullets">
+            <li>Designed and built an end-to-end attrition analysis model using a 1,000+ row HR dataset, identifying top drivers of turnover — tenure, department, overtime load, and compensation band.</li>
+            <li>Built DAX-calculated measures in Power BI to segment employees by attrition risk tier (High / Medium / Low), enabling targeted retention strategy over reactive exit management.</li>
+            <li>Delivered an interactive Power BI dashboard with drill-through filters by department, role, and demographics — ready for HR leadership review.</li>
+            <li>Supported analysis in Excel using pivot tables, conditional logic, and trend charts with full insight commentary suitable for business stakeholders.</li>
+          </ul>
+          <div class="project-finding">
+            <div class="project-finding-label">Key Finding</div>
+            <p>Employees in overtime-heavy roles with under 3 years of tenure were <strong style="color:var(--gold)">2.7× more likely to leave</strong> — recommended targeted engagement interventions for this high-risk cohort.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <aside class="side-col">
+      <div class="side-section">
+        <div class="side-section-title">Top Skills</div>
+        <span class="side-tag hl">greytHR</span>
+        <span class="side-tag hl">Power BI</span>
+        <span class="side-tag hl">Excel</span>
+        <span class="side-tag hl">Payroll Processing</span>
+        <span class="side-tag hl">PF / ESI / TDS</span>
+        <span class="side-tag hl">People Analytics</span>
+        <span class="side-tag">DAX</span>
+        <span class="side-tag">ATS Management</span>
+        <span class="side-tag">Process Optimisation</span>
+      </div>
+      <div class="side-section">
+        <div class="side-section-title">Education</div>
+        <div class="edu-item">
+          <div class="edu-degree">MBA – Human Resources Management</div>
+          <div class="edu-school">Jain University, Bengaluru</div>
+          <div class="edu-year">Expected April 2026</div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">Business Analytics · People Analytics · Org. Behaviour</div>
+        </div>
+        <div class="edu-item">
+          <div class="edu-degree">B.E – Electrical Engineering</div>
+          <div class="edu-school">DMI College of Engineering, Chennai</div>
+          <div class="edu-year">Graduated April 2021</div>
+        </div>
+      </div>
+      <div class="side-section">
+        <div class="side-section-title">Certifications</div>
+        <ul class="cert-list">
+          <li>HR Analytics: Making Data-Driven Decisions<br><span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);">LinkedIn Learning</span></li>
+          <li>People Analytics<br><span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);">Coursera</span></li>
+          <li>Managing Employee Problems<br><span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);">LinkedIn Learning</span></li>
+        </ul>
+      </div>
+      <div class="availability">
+        <div class="availability-label">Availability</div>
+        <div class="availability-text">
+          Immediate Joining<br>
+          Chennai · Bengaluru<br>
+          Hyderabad · Mumbai<br>
+          Remote · Hybrid
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ═══ EXPERIENCE ═══ -->
+<div id="tab-experience" class="tab-content">
+  <div class="content">
+    <main class="main-col">
+      <section class="section">
+        <div class="section-header"><span class="section-label">Professional Experience</span><hr></div>
+        <div class="timeline-line">
+
+          <div class="exp-item">
+            <div class="timeline-dot"></div>
+            <div class="exp-header">
+              <div>
+                <div class="exp-role">HR Operations Analyst</div>
+                <div class="exp-company">MrMed · Chennai, India</div>
+              </div>
+              <div class="exp-date">Apr 2025 – Oct 2025</div>
+            </div>
+            <ul class="exp-bullets collapsed" id="bl1">
+              <li>Optimised end-to-end HR workflows across onboarding, payroll, and compliance — identifying bottlenecks and implementing standardised procedures that improved operational efficiency.</li>
+              <li>Managed and maintained employee data in greytHR HRMS with 100% accuracy; performed regular audits on attendance records, leave balances, and personnel files.</li>
+              <li>Built Excel-based workforce dashboards tracking headcount, attrition trends, and HR KPIs — translating raw data into actionable insights for leadership.</li>
+              <li>Processed monthly payroll inputs, reconciled salary data in greytHR, and coordinated TDS deductions and PF/ESI statutory filings — zero errors and zero penalties across all cycles.</li>
+              <li>Streamlined onboarding and offboarding workflows by standardising documentation templates and compliance checklists, maintaining fully audit-ready employee records.</li>
+            </ul>
+            <button class="exp-toggle" onclick="toggleBullets('bl1',this)">Show All ▾</button>
+          </div>
+
+          <div class="exp-item">
+            <div class="timeline-dot"></div>
+            <div class="exp-header">
+              <div>
+                <div class="exp-role">HR Intern – Talent Operations</div>
+                <div class="exp-company">GAO Tech · Chennai, India</div>
+              </div>
+              <div class="exp-date">Feb 2024 – Nov 2024</div>
+            </div>
+            <ul class="exp-bullets collapsed" id="bl2">
+              <li>Managed end-to-end recruitment for 10+ technical and non-technical roles — reducing TAT by 30% through disciplined process management.</li>
+              <li>Built and maintained ATS records, interview trackers, and hiring dashboards used in leadership review meetings for data-driven workforce planning.</li>
+              <li>Collaborated with cross-functional hiring managers to define role requirements, craft JDs, and tighten shortlisting criteria — improving quality-of-hire.</li>
+              <li>Coordinated structured onboarding for new joiners including document verification, system access setup, and Day 1 induction scheduling.</li>
+            </ul>
+            <button class="exp-toggle" onclick="toggleBullets('bl2',this)">Show All ▾</button>
+          </div>
+
+          <div class="exp-item">
+            <div class="timeline-dot"></div>
+            <div class="exp-header">
+              <div>
+                <div class="exp-role">HR Intern – Talent Acquisition</div>
+                <div class="exp-company">Skillgenic · Chennai, India</div>
+              </div>
+              <div class="exp-date">Sep 2023 – Dec 2023</div>
+            </div>
+            <ul class="exp-bullets">
+              <li>Sourced and screened 250+ candidates across LinkedIn, Naukri, and Indeed within three months; designed structured evaluation frameworks that improved screening efficiency by 40%.</li>
+              <li>Maintained detailed candidate tracking spreadsheets and pipeline status reports, enabling faster, data-backed sourcing and shortlisting decisions.</li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+    </main>
+    <aside class="side-col">
+      <div class="side-section">
+        <div class="side-section-title">Career Timeline</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;line-height:2.4;color:var(--muted);">
+          <div><span style="color:var(--rust)">Apr 2025</span> → MrMed</div>
+          <div><span style="color:var(--gold)">Feb 2024</span> → GAO Tech</div>
+          <div><span style="color:var(--muted)">Sep 2023</span> → Skillgenic</div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--rule);"><span style="color:var(--green)">Apr 2026</span> → MBA Complete</div>
+        </div>
+      </div>
+      <div class="side-section">
+        <div class="side-section-title">Open To Roles</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <span style="font-family:'DM Mono',monospace;font-size:10px;padding:7px 12px;border:1px solid var(--rule);">HR Operations</span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;padding:7px 12px;border:1px solid var(--rule);">HR Analytics</span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;padding:7px 12px;border:1px solid var(--rule);">HR Generalist</span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;padding:7px 12px;border:1px solid var(--rule);">Talent Acquisition</span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;padding:7px 12px;border:1px solid var(--rule);">Payroll & Compliance</span>
+        </div>
+      </div>
+      <div class="availability">
+        <div class="availability-label">Work Preference</div>
+        <div class="availability-text">On-site · Remote · Hybrid<br>Chennai · Bengaluru<br>Hyderabad · Mumbai</div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ═══ SKILLS ═══ -->
+<div id="tab-skills" class="tab-content">
+  <div class="skills-grid">
+    <div class="skill-group-card">
+      <div class="skill-group-title">HRMS & Tools</div>
+      <div class="skill-tags">
+        <span class="skill-tag hl">greytHR</span><span class="skill-tag hl">Power BI</span><span class="skill-tag hl">Excel</span>
+        <span class="skill-tag">DAX</span><span class="skill-tag">Pivot Tables</span><span class="skill-tag">VLOOKUP</span>
+        <span class="skill-tag">ATS Management</span><span class="skill-tag">MS Office Suite</span>
+      </div>
+    </div>
+    <div class="skill-group-card">
+      <div class="skill-group-title">HR Operations</div>
+      <div class="skill-tags">
+        <span class="skill-tag hl">Payroll Processing</span><span class="skill-tag hl">PF / ESI / TDS</span>
+        <span class="skill-tag">Employee Lifecycle</span><span class="skill-tag">Onboarding & Offboarding</span>
+        <span class="skill-tag">Statutory Filings</span><span class="skill-tag">Data Quality Audits</span>
+        <span class="skill-tag">Process Optimisation</span>
+      </div>
+    </div>
+    <div class="skill-group-card">
+      <div class="skill-group-title">People Analytics</div>
+      <div class="skill-tags">
+        <span class="skill-tag hl">People Analytics</span><span class="skill-tag">KPI Reporting</span>
+        <span class="skill-tag">Workforce Dashboards</span><span class="skill-tag">Attrition Analysis</span>
+        <span class="skill-tag">Headcount Reporting</span><span class="skill-tag">Trend Analysis</span>
+      </div>
+    </div>
+    <div class="skill-group-card">
+      <div class="skill-group-title">Soft Skills</div>
+      <div class="skill-tags">
+        <span class="skill-tag">Stakeholder Management</span><span class="skill-tag">Cross-functional Collaboration</span>
+        <span class="skill-tag">Business Report Writing</span><span class="skill-tag">Attention to Detail</span>
+        <span class="skill-tag">Analytical Problem-Solving</span>
+      </div>
+    </div>
+  </div>
+  <div style="padding:0 48px 56px;max-width:720px;">
+    <div class="section-header" style="margin-bottom:28px;"><span class="section-label">Proficiency</span><hr></div>
+    <div class="skill-bar-row">
+      <div class="skill-bar-label"><span>Payroll & Statutory Compliance</span><span>92%</span></div>
+      <div class="skill-bar-track"><div class="skill-bar-fill" style="--pct:92%"></div></div>
+    </div>
+    <div class="skill-bar-row">
+      <div class="skill-bar-label"><span>greytHR HRMS</span><span>90%</span></div>
+      <div class="skill-bar-track"><div class="skill-bar-fill" style="--pct:90%"></div></div>
+    </div>
+    <div class="skill-bar-row">
+      <div class="skill-bar-label"><span>Excel (Advanced)</span><span>88%</span></div>
+      <div class="skill-bar-track"><div class="skill-bar-fill" style="--pct:88%"></div></div>
+    </div>
+    <div class="skill-bar-row">
+      <div class="skill-bar-label"><span>HR Operations & Process Design</span><span>85%</span></div>
+      <div class="skill-bar-track"><div class="skill-bar-fill" style="--pct:85%"></div></div>
+    </div>
+    <div class="skill-bar-row">
+      <div class="skill-bar-label"><span>Talent Acquisition</span><span>82%</span></div>
+      <div class="skill-bar-track"><div class="skill-bar-fill" style="--pct:82%"></div></div>
+    </div>
+    <div class="skill-bar-row">
+      <div class="skill-bar-label"><span>Power BI / DAX</span><span>78%</span></div>
+      <div class="skill-bar-track"><div class="skill-bar-fill" style="--pct:78%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CONTACT ═══ -->
+<div id="tab-contact" class="tab-content">
+  <div class="contact-section">
+    <h2>Let's Connect.</h2>
+    <p class="sub">Open to HR Operations, Analytics & Generalist roles · Immediate joining</p>
+    <div class="contact-grid">
+      <div class="contact-item">
+        <div class="contact-item-label">Email</div>
+        <div class="contact-item-value"><a href="mailto:aaronbeneedict@gmail.com">aaronbeneedict@gmail.com</a></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-item-label">Phone</div>
+        <div class="contact-item-value"><a href="tel:+919360925075">+91 93609 25075</a></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-item-label">LinkedIn</div>
+        <div class="contact-item-value"><a href="https://linkedin.com/in/aaron-benedict" target="_blank">aaron-benedict</a></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-item-label">Base Location</div>
+        <div class="contact-item-value">Chennai, India</div>
+      </div>
+    </div>
+    <div class="section-header" style="margin-bottom:16px;"><span class="section-label">Work Locations</span><hr></div>
+    <div class="loc-chips">
+      <span class="loc-chip">📍 Chennai</span>
+      <span class="loc-chip">📍 Bengaluru</span>
+      <span class="loc-chip">📍 Hyderabad</span>
+      <span class="loc-chip">📍 Mumbai</span>
+      <span class="loc-chip mode">🏠 Remote</span>
+      <span class="loc-chip mode">🔀 Hybrid</span>
+    </div>
+    <div class="section-header" style="margin-bottom:16px;margin-top:32px;"><span class="section-label">Role Preferences</span><hr></div>
+    <div class="loc-chips">
+      <span class="loc-chip">HR Operations</span>
+      <span class="loc-chip">HR Analytics</span>
+      <span class="loc-chip">HR Generalist</span>
+      <span class="loc-chip">Talent Acquisition</span>
+      <span class="loc-chip">Payroll & Compliance</span>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>Aaron Benedict · HR Operations & Analytics</span>
+  <span>aaronbeneedict@gmail.com · +91 93609 25075</span>
+  <span>Portfolio 2025</span>
+</footer>
+
+<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Top</button>
+
+<script>
+// ── TAB SWITCHING ──
+function goTab(id, btn) {
+  // hide all panels
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  // deactivate all buttons
+  document.querySelectorAll('.tab-btn, .nav-tab').forEach(b => b.classList.remove('active'));
+  // show panel
+  const panel = document.getElementById('tab-' + id);
+  if (panel) panel.classList.add('active');
+  // activate matching buttons in both strips
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.getAttribute('onclick') === `goTab('${id}',this)`) b.classList.add('active');
+  });
+  document.querySelectorAll('.nav-tab').forEach(b => {
+    if (b.getAttribute('onclick') === `goTab('${id}',this)`) b.classList.add('active');
+  });
+  // tab-specific actions
+  if (id === 'skills') setTimeout(animateBars, 80);
+  if (id === 'experience') setTimeout(animateExp, 80);
+  // scroll into view
+  document.querySelector('.tabs-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── BULLET TOGGLE ──
+function toggleBullets(id, btn) {
+  const ul = document.getElementById(id);
+  ul.classList.toggle('collapsed');
+  btn.textContent = ul.classList.contains('collapsed') ? 'Show All ▾' : 'Show Less ▴';
+}
+
+// ── HERO ENTRANCE ──
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    document.getElementById('hero-name').classList.add('vis');
+    document.getElementById('hero-tag').classList.add('vis');
+    document.getElementById('hero-contact').classList.add('vis');
+  }, 80);
+});
+
+// ── SCROLL PROGRESS + BACK TO TOP ──
+window.addEventListener('scroll', () => {
+  const total = document.body.scrollHeight - window.innerHeight;
+  document.getElementById('progress-bar').style.width = (total > 0 ? (window.scrollY / total) * 100 : 0) + '%';
+  const btn = document.getElementById('back-top');
+  window.scrollY > 400 ? btn.classList.add('vis') : btn.classList.remove('vis');
+});
+
+// ── EXPERIENCE SCROLL ANIMATION ──
+function animateExp() {
+  document.querySelectorAll('#tab-experience .exp-item').forEach((el, i) => {
+    setTimeout(() => el.classList.add('vis'), i * 130);
+  });
+}
+
+// ── SKILL BAR ANIMATION ──
+function animateBars() {
+  document.querySelectorAll('.skill-bar-fill').forEach(b => b.classList.add('animated'));
+}
+
+// Intersection observer for overview
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('#tab-overview .exp-item').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
